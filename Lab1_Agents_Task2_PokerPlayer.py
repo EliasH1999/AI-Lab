@@ -6,6 +6,16 @@
 # 2 example poker hands
 example_hand1 = ['Ad', '2s', '2c']
 example_hand2 = ['5s', '5c', '5d']
+ranks = "23456789TJQKA"
+suits = "shdc"
+deck = []
+for rank in ranks:
+    for suit in suits:
+        deck.append(rank + suit)
+
+   
+print(deck)
+print(len(deck))
 
 # Randomly generate two hands of n cards
 def generate_2hands(nn_card=3):
@@ -78,7 +88,8 @@ def analyse_hand(hand_):
     return score
 
 # writing your test code here
-print(analyse_hand(example_hand1))
+# print(analyse_hand(example_hand1))
+
 
 #########################
 #      Game flow        #
