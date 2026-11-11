@@ -16,6 +16,7 @@ deck = []
 for rank in ranks:
     for suit in suits:
         deck.append(rank + suit)
+    
 
 
 
@@ -214,6 +215,18 @@ def run_experiment(agent1, agent2, n_games=100):
 
 
 
+def print_results(name1, name2, results):
+    mean = statistics.mean(results)
+    std = statistics.stdev(results)
+    print(name1, "vs", name2)
+    print("  mean:", round(mean, 1), "  std:", round(std, 1))
+    if mean > 0:
+        print("  ->", name1, "won more money on average")
+    else:
+        print("  ->", name2, "won more money on average")
+    print()
+
+
 # writing your test code here
 
 
@@ -238,17 +251,6 @@ print("Showdown: Agent 1 score", score1, "| Agent 2 score", score2, "| pot", pot
 
 
 # Print the result of a match: mean and standard deviation of the
-# difference in money, and which agent won more money on average
-def print_results(name1, name2, results):
-    mean = statistics.mean(results)
-    std = statistics.stdev(results)
-    print(name1, "vs", name2)
-    print("  mean:", round(mean, 1), "  std:", round(std, 1))
-    if mean > 0:
-        print("  ->", name1, "won more money on average")
-    else:
-        print("  ->", name2, "won more money on average")
-    print()
 
 # 2d: random agent vs fixed agent, 100 games x 50 hands
 print_results("Random", "Fixed", run_experiment(random_agent, fixed_agent))
