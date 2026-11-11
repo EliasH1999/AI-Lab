@@ -19,271 +19,278 @@ robot = World.init()
 print(sorted(robot.keys()))
 
 
-# 1a
-# while robot: # main Control loop
-#     motorSpeed = dict(speedLeft=random.choice([-2, -1, 0, 1, 2]), 
-#                       speedRight=random.choice([-2, -1, 0, 1, 2]))
+
+import random
+import Lab1_Agents_Task1_World_ZMQ as World
+
+robot = World.init()
+
+# Performance measurements
+MAX_TIME = 1200000  # 20 minutes in milliseconds
+startTime = World.getSimulationTime()
+collectionTimes = []
 
 
+# 1a - RANDOM AGENT
 
-#     for i in range(2):
-#         World.execute(motorSpeed, 500, -1)
-#         World.collectNearestBlock()
-#     sensor = World.getSensorReading("energySensor")
-#     result = World.collectNearestBlock()
-#     print(f"Distance: {sensor.distance:.2f} m | {result}")
+# while robot:
+#     if World.getSimulationTime() - startTime >= MAX_TIME:
+#         break
 
-# 1b
-# actions = [(dict(speedLeft=2, speedRight=2), 6000), 
-#                (dict(speedLeft=1, speedRight=2), 4000),
-#                (dict(speedLeft=1, speedRight=2), 2000),
-#                (dict(speedLeft=-2, speedRight=-2), 2000),]
-# while robot: # main Control loop
-#         for action, duration in actions: 
-#             World.execute(action, duration, -1)
-#             World.collectNearestBlock()
+#     motorSpeed = dict(
+#         speedLeft=random.choice([-2, -1, 0, 1, 2]),
+#         speedRight=random.choice([-2, -1, 0, 1, 2])
+#     )
 
-# 1c
-# while robot: # main Control loop
+#     World.execute(motorSpeed, 100, -1)
+
+#     if World.collectNearestBlock() == "Energy collected :)":
+#         collectionTimes.append(World.getSimulationTime())
+
+
+# 1b - FIXED AGENT
+
+# actions = [
+#     (dict(speedLeft=2, speedRight=2), 6000),
+#     (dict(speedLeft=1, speedRight=2), 4000),
+#     (dict(speedLeft=1, speedRight=2), 2000),
+#     (dict(speedLeft=-2, speedRight=-2), 2000),
+# ]
+
+# while robot:
+#     if World.getSimulationTime() - startTime >= MAX_TIME:
+#         break
+
+#     for action, duration in actions:
+#         if World.getSimulationTime() - startTime >= MAX_TIME:
+#             break
+
+#         World.execute(action, duration, -1)
+
+#         if World.collectNearestBlock() == "Energy collected :)":
+#             collectionTimes.append(World.getSimulationTime())
+#             print(f"Collected {len(collectionTimes)} blocks")
+
+# 1c - REFLEX AGENT
+
+# while robot:
+#     if World.getSimulationTime() - startTime >= MAX_TIME:
+#         break
+
 #     energy = World.getSensorReading("energySensor")
 #     ultrasonic_left = World.getSensorReading("ultraSonicSensorLeft")
 #     ultrasonic_right = World.getSensorReading("ultraSonicSensorRight")
-    
-#     print("Distance: ", energy.distance)
-#     print("Direction: ", energy.direction)
 
-#     print("Left:", ultrasonic_left)
-#     print("Right:", ultrasonic_right)
+#     if energy.direction < -0.3:
+#         motorSpeed = dict(speedLeft=-1, speedRight=1)
 
-
-#     if(energy.direction < -0.2):
-#         motorSpeed = dict(speedLeft=0.5, speedRight=2)
-
-#     elif(energy.direction > 0.2):
-#         motorSpeed = dict(speedLeft=2, speedRight=0.5)
+#     elif energy.direction > 0.3:
+#         motorSpeed = dict(speedLeft=1 , speedRight=-1)
 
 #     else:
 #         motorSpeed = dict(speedLeft=2, speedRight=2)
 
-#     if(ultrasonic_left < 0.2 and ultrasonic_right < 0.2):
-#             motorSpeed = dict(speedLeft=-2, speedRight=-2)
+#     if ultrasonic_left < 0.2 and ultrasonic_right < 0.2:
+#         motorSpeed = dict(speedLeft=-2, speedRight=-2)
 
-#     elif(ultrasonic_left < 0.5):
+#     elif ultrasonic_left < 0.5:
 #         motorSpeed = dict(speedLeft=2, speedRight=-2)
 
-#     elif(ultrasonic_right < 0.5):
+#     elif ultrasonic_right < 0.5:
 #         motorSpeed = dict(speedLeft=-2, speedRight=2)
-    
-#     World.execute(motorSpeed, 100, -1) 
-#     World.collectNearestBlock()
 
-# 1d
+#     World.execute(motorSpeed, 100, -1)
 
-import random
+#     if World.collectNearestBlock() == "Energy collected :)":
+#         collectionTimes.append(World.getSimulationTime())
+#         print(f"Collected {len(collectionTimes)} blocks")
+
+
+
+
+
+# 1d - MEMORY AGENT
+
+
+import Lab1_Agents_Task1_World_ZMQ as World
+
+# connect to the server (only once!)
+robot = World.init()
+print(sorted(robot.keys()))
+
+# Performance measurements
+MAX_TIME = 1200000  # 20 minutes in milliseconds
+startTime = World.getSimulationTime()
+collectionTimes = []
+
+
+# 1d - MEMORY AGENT
+
+# Settings
+SAFE_LEFT = 0.5          # start avoiding when the left sonar reads less than this (m)
+SAFE_RIGHT = 0.8         # the right sonar looks almost straight ahead, so it needs a bigger margin
+SAFE_NEAR_BLOCK = 0.3    # used for both sonars when the block is right in front of us
+CLEAR_DISTANCE = 0.9     # keep turning until both sonars read more than this (m)
+EXTRA_TURN_TIME = 1000   # keep turning this long after the wall is out of view (ms)
+PASS_TIME = 2000         # then drive straight this long to get past the wall (ms)
+
+STUCK_TIMEOUT = 20000    # no progress towards the block for this long -> explore (ms)
+EXPLORE_START = 15000    # first exploration lasts this long (ms)
+EXPLORE_MAX = 60000      # exploration never lasts longer than this (ms)
 
 # Memory
-previousDistance = 0
-stuckCounter = 0
-
-escaping = False
-escapeSteps = 0
-
-avoidDirection = None
-avoidTurnSteps = 4
-avoidForwardSteps = 10
-
-# Block collection
-totalBlocks = 12
-targetBlocks = 6
-collectedBlocks = 0
-
-# Exploration
-EXPLORE_TIMEOUT = 90000
-EXPLORE_DURATION = 60000
-
-lastBlockTime = World.getSimulationTime()
+bestDistance = float("inf")     # closest we have been to the current block
+lastProgressTime = startTime    # when we last got closer to it
 
 exploring = False
-exploreStart = 0
-exploreDirection = None
-exploreTurnSteps = 0
-exploreForwardSteps = 0
+exploreUntil = 0
+exploreTime = EXPLORE_START     # doubles every time we get stuck on the same block
+
+avoidDirection = None           # which way we started turning at the current wall
+turnUntil = 0
+passUntil = 0
 
 # Debugging
-lastDebugTime = -500
+lastDebugTime = 0
 lastMode = None
 
 while robot:
     now = World.getSimulationTime()
 
+    if now - startTime >= MAX_TIME:
+        break
+
     energy = World.getSensorReading("energySensor")
     ultrasonic_left = World.getSensorReading("ultraSonicSensorLeft")
     ultrasonic_right = World.getSensorReading("ultraSonicSensorRight")
 
-    # Exploration timing
-    if exploring and now - exploreStart >= EXPLORE_DURATION:
+    # Collected blocks are moved far away, so this means there are none left
+    if energy.distance > 100:
+        print("All blocks collected")
+        break
+
+    # Progress memory: are we still getting closer to the block?
+    if not exploring:
+        if energy.distance < bestDistance - 0.1:
+            bestDistance = energy.distance
+            lastProgressTime = now
+
+        elif now - lastProgressTime >= STUCK_TIMEOUT:
+            exploring = True
+            exploreUntil = now + exploreTime
+            exploreTime = min(exploreTime * 2, EXPLORE_MAX)
+
+    elif now >= exploreUntil:
         exploring = False
-        lastBlockTime = now
+        bestDistance = energy.distance
+        lastProgressTime = now
 
-        previousDistance = 0
-        stuckCounter = 0
+    # Allow going closer to a wall when the block is right in front of us
+    if not exploring and energy.distance < 1.0 and abs(energy.direction) < 0.3:
+        safeLeft = SAFE_NEAR_BLOCK
+        safeRight = SAFE_NEAR_BLOCK
+    else:
+        safeLeft = SAFE_LEFT
+        safeRight = SAFE_RIGHT
 
-    elif not exploring and now - lastBlockTime >= EXPLORE_TIMEOUT:
-        exploring = True
-        exploreStart = now
-
-        escaping = False
-        escapeSteps = 0
-        avoidDirection = None
-        avoidTurnSteps = 0
-        avoidForwardSteps = 0
-
-        previousDistance = 0
-        stuckCounter = 0
-
-        exploreTurnSteps = 0
-        exploreForwardSteps = 0
-
-    # Stuck detection
-    if not escaping and not exploring:
-        if previousDistance != 0:
-            if abs(previousDistance - energy.distance) < 0.03:
-                stuckCounter += 1
-            else:
-                stuckCounter = 0
-
-        previousDistance = energy.distance
-
-        if stuckCounter > 25:
-            escaping = True
-            escapeSteps = 10
-            stuckCounter = 0
-
-            avoidDirection = None
-            avoidTurnSteps = 0
-            avoidForwardSteps = 0
-
-    # Activate obstacle avoidance
-    if not escaping and avoidDirection is None:
-        if ultrasonic_left < 0.5 or ultrasonic_right < 0.5:
+    # Activate obstacle avoidance and remember which way we turn
+    if avoidDirection is None:
+        if ultrasonic_left < safeLeft or ultrasonic_right < safeRight:
             if ultrasonic_left < ultrasonic_right:
                 avoidDirection = "right"
             else:
                 avoidDirection = "left"
 
-            avoidTurnSteps = 4
-            avoidForwardSteps = 10
+    # While the wall is still in view, keep pushing the turn/pass timers forward
+    if avoidDirection is not None:
+        if ultrasonic_left < CLEAR_DISTANCE or ultrasonic_right < CLEAR_DISTANCE:
+            turnUntil = now + EXTRA_TURN_TIME
+            passUntil = turnUntil + PASS_TIME
 
-    # MODE 1: ESCAPING
-    if escaping:
-        mode = "ESCAPING"
+        elif now >= passUntil:
+            avoidDirection = None
 
-        motorSpeed = dict(speedLeft=-2, speedRight=-1)
-        escapeSteps -= 1
-
-        if escapeSteps <= 0:
-            escaping = False
-            previousDistance = 0
-
-    # MODE 2: AVOIDING
-    elif avoidDirection is not None:
+    # MODE 1: AVOIDING - turn on the spot until the wall is well out of the way
+    if avoidDirection is not None and now < turnUntil:
         mode = "AVOIDING"
 
-        if ultrasonic_left < 0.2 and ultrasonic_right < 0.2:
-            motorSpeed = dict(speedLeft=-2, speedRight=-2)
-
-        elif ultrasonic_left < 0.2 or ultrasonic_right < 0.2:
-            if avoidDirection == "left":
-                motorSpeed = dict(speedLeft=-1, speedRight=1)
-            else:
-                motorSpeed = dict(speedLeft=1, speedRight=-1)
-
-        elif avoidTurnSteps > 0:
-            if avoidDirection == "left":
-                motorSpeed = dict(speedLeft=-1, speedRight=1)
-            else:
-                motorSpeed = dict(speedLeft=1, speedRight=-1)
-
-            avoidTurnSteps -= 1
-
-        elif avoidForwardSteps > 0:
-            motorSpeed = dict(speedLeft=1, speedRight=1)
-            avoidForwardSteps -= 1
-
+        if avoidDirection == "left":
+            motorSpeed = dict(speedLeft=-1, speedRight=1)
         else:
-            avoidDirection = None
-            motorSpeed = dict(speedLeft=1, speedRight=1)
+            motorSpeed = dict(speedLeft=1, speedRight=-1)
 
-    # MODE 3: EXPLORING
+    # MODE 2: PASSING - drive straight for a while to get past the wall
+    elif avoidDirection is not None:
+        mode = "PASSING"
+
+        motorSpeed = dict(speedLeft=2, speedRight=2)
+
+    # MODE 3: EXPLORING - drive straight, the walls decide where we end up
     elif exploring:
         mode = "EXPLORING"
 
-        if exploreTurnSteps == 0 and exploreForwardSteps == 0:
-            exploreDirection = random.choice(["left", "right"])
-            exploreTurnSteps = random.randint(3, 6)
-            exploreForwardSteps = random.randint(15, 25)
+        motorSpeed = dict(speedLeft=2, speedRight=2)
 
-        if exploreTurnSteps > 0:
-            exploreTurnSteps -= 1
-
-            if exploreDirection == "left":
-                motorSpeed = dict(speedLeft=-1, speedRight=1)
-            else:
-                motorSpeed = dict(speedLeft=1, speedRight=-1)
-
-        elif exploreForwardSteps > 0:
-            exploreForwardSteps -= 1
-            motorSpeed = dict(speedLeft=1.5, speedRight=1.5)
-
-    # MODE 4: NORMAL
+    # MODE 4: NORMAL - turn on the spot towards the block, then drive straight
     else:
         mode = "NORMAL"
 
-        if energy.direction < -0.2:
-            motorSpeed = dict(speedLeft=0.5, speedRight=2)
+        if energy.direction < -0.3:
+            motorSpeed = dict(speedLeft=-1, speedRight=1)
 
-        elif energy.direction > 0.2:
-            motorSpeed = dict(speedLeft=2, speedRight=0.5)
+        elif energy.direction > 0.3:
+            motorSpeed = dict(speedLeft=1, speedRight=-1)
 
         else:
             motorSpeed = dict(speedLeft=2, speedRight=2)
 
-    # Compact debugging: every 500ms or on mode change
-    if mode != lastMode or now - lastDebugTime >= 500:
+    # Compact debugging
+    if mode != lastMode or now - lastDebugTime >= 2000:
         print(
             f"{now / 1000:.1f}s | {mode} | "
-            f"Block: {energy.distance:.2f}m "
-            f"({energy.direction:.2f}rad) | "
-            f"L: {ultrasonic_left:.2f} "
-            f"R: {ultrasonic_right:.2f} | "
-            f"Motors: {motorSpeed['speedLeft']}, "
-            f"{motorSpeed['speedRight']}"
+            f"Block: {energy.distance:.2f}m ({energy.direction:.2f}rad) | "
+            f"L: {ultrasonic_left:.2f} R: {ultrasonic_right:.2f} | "
+            f"Best: {bestDistance:.2f}m"
         )
 
         lastDebugTime = now
         lastMode = mode
 
-    # Execute movement and collect blocks
+    # Execute movement
     World.execute(motorSpeed, 100, -1)
-    result = World.collectNearestBlock()
 
-    if result == "Energy collected :)":
-        collectedBlocks += 1
-        lastBlockTime = World.getSimulationTime()
+    # Collect energy blocks
+    if World.collectNearestBlock() == "Energy collected :)":
+        collectionTimes.append(World.getSimulationTime())
+        print(f"Collected {len(collectionTimes)} blocks")
 
+        # New target: forget everything about the old one
+        bestDistance = float("inf")
+        lastProgressTime = World.getSimulationTime()
         exploring = False
-        exploreTurnSteps = 0
-        exploreForwardSteps = 0
+        exploreTime = EXPLORE_START
 
-        print(f"Collected {collectedBlocks}/{targetBlocks} blocks")
 
-    # Stop after six blocks
-    if collectedBlocks >= targetBlocks:
-        print("\n========== FINAL RESULTS ==========")
-        print(f"Blocks collected: {collectedBlocks}/{totalBlocks}")
-        print(f"Simulation time: {World.getSimulationTime() / 1000:.1f}s")
-        print("===================================")
+# FINAL RESULTS (runs after the control loop finishes)
+World.execute(dict(speedLeft=0, speedRight=0), 100, -1)
 
-        motorSpeed = dict(speedLeft=0, speedRight=0)
-        World.execute(motorSpeed, 100, -1)
-        break
+print("\n========== FINAL RESULTS ==========")
+print(f"Blocks collected: {len(collectionTimes)}")
+print(f"Simulation time: {(World.getSimulationTime() - startTime) / 1000:.1f}s")
+
+if collectionTimes:
+    firstBlockTime = (collectionTimes[0] - startTime) / 1000
+    print(f"Time to first block: {firstBlockTime:.2f}s")
+else:
+    print("Time to first block: N/A")
+
+if len(collectionTimes) >= 2:
+    averageTime = (collectionTimes[-1] - collectionTimes[0]) / (len(collectionTimes) - 1) / 1000
+    print(f"Average time between collections: {averageTime:.2f}s")
+else:
+    print("Average time between collections: N/A")
+
+print("===================================")
+
+
+
