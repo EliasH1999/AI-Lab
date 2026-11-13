@@ -8,7 +8,7 @@
 # IMPORTANT: for each successful call to simxStart, there
 # should be a corresponding call to simxFinish at the end!
 from turtle import right
-from turtle import left
+
 
 import Lab1_Agents_Task1_World_ZMQ as World
 import random
@@ -23,12 +23,12 @@ print(sorted(robot.keys()))
 import random
 import Lab1_Agents_Task1_World_ZMQ as World
 
-robot = World.init()
 
 # Performance measurements
 MAX_TIME = 1200000  # 20 minutes in milliseconds
 startTime = World.getSimulationTime()
 collectionTimes = []
+
 
 
 # 1a - RANDOM AGENT
@@ -46,6 +46,29 @@ collectionTimes = []
 
 #     if World.collectNearestBlock() == "Energy collected :)":
 #         collectionTimes.append(World.getSimulationTime())
+
+
+# # FINAL RESULTS
+# World.execute(dict(speedLeft=0, speedRight=0), 100, -1)
+
+# print("\n========== FINAL RESULTS ==========")
+# print(f"Blocks collected: {len(collectionTimes)}")
+# print(f"Simulation time: {(World.getSimulationTime() - startTime) / 1000:.1f}s")
+
+# if collectionTimes:
+#     firstBlockTime = (collectionTimes[0] - startTime) / 1000
+#     print(f"Time to first block: {firstBlockTime:.2f}s")
+# else:
+#     print("Time to first block: N/A")
+
+# if len(collectionTimes) >= 2:
+#     averageTime = (collectionTimes[-1] - collectionTimes[0]) / (len(collectionTimes) - 1) / 1000
+#     print(f"Average time between collections: {averageTime:.2f}s")
+# else:
+#     print("Average time between collections: N/A")
+
+# print("===================================")
+
 
 
 # 1b - FIXED AGENT
@@ -70,6 +93,30 @@ collectionTimes = []
 #         if World.collectNearestBlock() == "Energy collected :)":
 #             collectionTimes.append(World.getSimulationTime())
 #             print(f"Collected {len(collectionTimes)} blocks")
+
+
+# # FINAL RESULTS
+# World.execute(dict(speedLeft=0, speedRight=0), 100, -1)
+
+# print("\n========== FINAL RESULTS ==========")
+# print(f"Blocks collected: {len(collectionTimes)}")
+# print(f"Simulation time: {(World.getSimulationTime() - startTime) / 1000:.1f}s")
+
+# if collectionTimes:
+#     firstBlockTime = (collectionTimes[0] - startTime) / 1000
+#     print(f"Time to first block: {firstBlockTime:.2f}s")
+# else:
+#     print("Time to first block: N/A")
+
+# if len(collectionTimes) >= 2:
+#     averageTime = (collectionTimes[-1] - collectionTimes[0]) / (len(collectionTimes) - 1) / 1000
+#     print(f"Average time between collections: {averageTime:.2f}s")
+# else:
+#     print("Average time between collections: N/A")
+
+# print("===================================")
+
+
 
 # 1c - REFLEX AGENT
 
@@ -106,35 +153,49 @@ collectionTimes = []
 #         print(f"Collected {len(collectionTimes)} blocks")
 
 
+# # FINAL RESULTS
+# World.execute(dict(speedLeft=0, speedRight=0), 100, -1)
+
+# print("\n========== FINAL RESULTS ==========")
+# print(f"Blocks collected: {len(collectionTimes)}")
+# print(f"Simulation time: {(World.getSimulationTime() - startTime) / 1000:.1f}s")
+
+# if collectionTimes:
+#     firstBlockTime = (collectionTimes[0] - startTime) / 1000
+#     print(f"Time to first block: {firstBlockTime:.2f}s")
+# else:
+#     print("Time to first block: N/A")
+
+# if len(collectionTimes) >= 2:
+#     averageTime = (collectionTimes[-1] - collectionTimes[0]) / (len(collectionTimes) - 1) / 1000
+#     print(f"Average time between collections: {averageTime:.2f}s")
+# else:
+#     print("Average time between collections: N/A")
+
+# print("===================================")
 
 
 
-# 1d - MEMORY AGENT
 
 
-import Lab1_Agents_Task1_World_ZMQ as World
 
-# connect to the server (only once!)
-robot = World.init()
-print(sorted(robot.keys()))
 
 # Performance measurements
 MAX_TIME = 1200000  # 20 minutes in milliseconds
 startTime = World.getSimulationTime()
 collectionTimes = []
 
-
 # 1d - MEMORY AGENT
 
 # Settings
-SAFE_LEFT = 0.5          # start avoiding when the left sonar reads less than this (m)
-SAFE_RIGHT = 0.8         # the right sonar looks almost straight ahead, so it needs a bigger margin
+SAFE_LEFT = 0.6           # start avoiding when the left sonar reads less than this (m)
+SAFE_RIGHT = 0.9      # the right sonar looks almost straight ahead, so it needs a bigger margin
 SAFE_NEAR_BLOCK = 0.3    # used for both sonars when the block is right in front of us
-CLEAR_DISTANCE = 0.9     # keep turning until both sonars read more than this (m)
-EXTRA_TURN_TIME = 1000   # keep turning this long after the wall is out of view (ms)
+CLEAR_DISTANCE = 0.5     # keep turning until both sonars read more than this (m)
+EXTRA_TURN_TIME = 1250  # keep turning this long after the wall is out of view (ms)
 PASS_TIME = 2000         # then drive straight this long to get past the wall (ms)
 
-STUCK_TIMEOUT = 20000    # no progress towards the block for this long -> explore (ms)
+STUCK_TIMEOUT = 10000    # no progress towards the block for this long -> explore (ms)
 EXPLORE_START = 15000    # first exploration lasts this long (ms)
 EXPLORE_MAX = 60000      # exploration never lasts longer than this (ms)
 
@@ -200,6 +261,9 @@ while robot:
                 avoidDirection = "right"
             else:
                 avoidDirection = "left"
+            turnUntil = now + EXTRA_TURN_TIME
+            passUntil = turnUntil + PASS_TIME
+
 
     # While the wall is still in view, keep pushing the turn/pass timers forward
     if avoidDirection is not None:
@@ -291,6 +355,3 @@ else:
     print("Average time between collections: N/A")
 
 print("===================================")
-
-
-
